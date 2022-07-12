@@ -1,0 +1,8 @@
+{
+    "/apis/message" : "/apis/message.js?needsToken=false&addsToken=sub:access",
+    "/apis/random" : "/apis/random.js?get=true&key=Mk6DAu4beAzqD6I63Z1jRgQ5WTDa6zQO&needsToken=true",
+    "/apis/createBook" : "/apis/book/create.js?needsToken=false",
+    "/apis/getBook" : "/apis/book/read.js?get=true&needsToken=false",
+    "/apis/updateBook" : "/apis/book/update.js?needsToken=false",
+    "/apis/deleteBook" : "/apis/book/delete.js?needsToken=false"
+}
