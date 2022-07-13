@@ -36,7 +36,11 @@ const createBook = async (body) => {
     if (!resp || !resp.result) {
         alert(resp.results.toString());
     }
-    root.removeChild(app_books.shadowRoot.querySelector("#no-content"));
+    try {
+        root.removeChild(app_books.shadowRoot.querySelector("#no-content"));
+    } catch (error) {
+        //do nothing
+    }
     let ele = document.createElement("p");
 
     let crossButton = document.createElement("button");
