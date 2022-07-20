@@ -21,7 +21,8 @@ const main = async _ => {
 	let location = window.location.href;
 	if (!router.isInHistory(location) || !session.get(APP_CONSTANTS.USERID))
 		// router.loadPage(APP_CONSTANTS.MESSAGE_HTML);
-		router.loadPage(APP_CONSTANTS.BOOKS_HTML);
+		// router.loadPage(APP_CONSTANTS.BOOKS_HTML);
+		router.loadPage(APP_CONSTANTS.BOOKS_HTML2);
 	else 
 		router.loadPage(location);
 }

@@ -1,0 +1,165 @@
+<!doctype html>
+<html>
+
+<head>
+	<meta charset="UTF-8">
+
+	<title>BookStore</title>
+    <style>
+        .title{
+            position: sticky;
+            margin: auto;
+            top: 0px;
+        }
+        .button{
+            min-height: 26px;
+            min-width: 50px;
+            border: 1px solid gold;
+            border-radius: 5px; 
+        }
+        .bookDiv{
+            margin: 4px;
+            padding: auto;
+            height: 80px;
+            width: 100vw;
+            border: 2px solid slateblue;
+            border-radius: 8x;
+        }
+        .bookContainer{
+            padding: auto;
+            border: 3px solid slateblue;
+            border-radius: 10x;
+        }
+    </style>
+</head>
+
+<body>
+    <h1 class="title">Manage books</h1>
+    <button onclick="toggleCreateForm()"><h3>Add book</h3></button>
+    <div id="createBook" style="display: none;">
+        <form id="createBookForm">
+            <label>Enter book name:</label><br>
+            <input type="text" name="name" id="bookNameTextBox">
+            <input type="button" value="Add" onclick="createBook()">
+        </form>
+    </div>
+    <div id="displayBooks">
+        <h1 id="displayBooksTitle"></h1>
+    </div>
+    <script>
+        let noOfBooks;
+        let createFormClosed = true;
+        const bookContainer = document.querySelector("#displayBooks");
+        getAllBooks();
+        bookContainer.setAttribute("class", "bookContainer")
+        function toggleCreateForm(){
+            let style = document.querySelector("#createBook").style;
+            style.display = createFormClosed ? "block" : "none";
+            createFormClosed = !createFormClosed
+        }
+        async function createBook(){
+            let formdata = new FormData(document.querySelector("#createBookForm"));
+            let name = formdata.get("name");
+            if(!name.length) return notify("Name can't be empty", 1);
+            let resp = await apiCall("createBook", {name}, "POST")
+            if(resp.result) {
+                notify("Book added.", 2);
+                addBookElement({id: resp.results.insertId, name})
+                noOfBooks++;
+                updateBookDispTitle(noOfBooks);
+            }
+            else notify("Book could not be added.", 3)
+            document.querySelector("#bookNameTextBox").value = "";
+        }
+        async function getAllBooks(){
+            let resp = await apiCall("getBook");
+            if(!resp.result) return notify("something went wrong");
+            if(Array.isArray(resp.results.books)) noOfBooks = resp.results.books.length;
+            else {noOfBooks = 0; return updateBookDispTitle(noOfBooks);}
+            updateBookDispTitle(noOfBooks);
+            resp.results.books?.forEach(book => {
+                addBookElement(book);
+            })
+        }
+        function updateBookDispTitle(num){
+            let title = document.getElementById("displayBooksTitle");
+            num? title.innerHTML = `Book List<sub>(count : ${num})</sub>` : title.innerText = "No book to show."
+        }
+        function addBookElement(book){
+            let bookDiv = document.createElement("div");
+            bookContainer.appendChild(bookDiv)
+            bookDiv.id = "book"+book.id; bookDiv.setAttribute("class", "bookDiv");
+            let bookName = document.createElement("span");  //bookName.setAttribute("class", "button");
+            bookName.innerText = book.name
+            let del = document.createElement("button"); del.innerText = "X"; //del.setAttribute("class", "button");
+            del.onclick = delClickHandler;
+            let edi = document.createElement("button"); edi.innerText = "/"; //edi.setAttribute("class", "button");
+            edi.onclick = ediClickHandler;
+            bookDiv.appendChild(bookName); bookDiv.appendChild(edi); bookDiv.appendChild(del);
+        }
+        async function delClickHandler(e){
+            let parent = e.target.parentNode;
+            let res = await apiCall("deleteBook", {id: parent.id.substring(4)}, "POST")
+            if(!res.result) return notify("!!Something went wrong!!", 1)
+            bookContainer.removeChild(parent);
+            notify("Book named " + parent.firstChild.innerText+ " was deleted.", 2)
+            noOfBooks--;
+            updateBookDispTitle(noOfBooks);
+        }
+        function ediClickHandler(e){
+            let parent = e.target.parentNode;
+            let original = parent.firstChild
+            let input = document.createElement("input"); input.value = original.innerText;
+            parent.firstChild = input;
+            e.target.innerText = 'Done'
+            e.target.onclick = editSubmissionHandler(e, original);
+        }
+        function editSubmissionHandler(e, original){
+            console.log("event", e, "original", original)
+            let parent = e.target.parentNode
+            let bookName = parent.firstChild.value
+            let newName = bookName.innerText
+            if(!newName.length){
+                return reverseToOldValue();
+            }
+            let res = apiCall("updateBook", {newName}, "POST")
+            if(res.result){
+                notify("Book updated.", 2);
+                closeEditable(bookName)
+                let editButton = parent.children[2]
+                editButton.innerText = '/'
+                editButton.onclick = ediClickHandler
+            }
+        }
+        async function apiCall(url, obj={}, method="GET"){
+            try {
+                let response = await (await fetch("http://localhost:9090/apis/"+url, {
+                    method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    ...(method=='POST' && {body: JSON.stringify(obj)})
+                })).json();
+            return response;
+            } catch (error) {
+                notify(error.message, 1)
+            }
+        }
+        function notify(msg='sample notify', type=4, duration=3000, rigid=1){
+            try {
+                let el = document.createElement("div");
+                el.setAttribute("style","min-height:5vh; min-width:30vw;position:fixed;top:5%; right:5%; z-index:999999, padding:1vh, border:2px solid grey, border-radius:10px");
+                el.style.backgroundColor = type==2? `rgba(0,255,0,${rigid})` : type==1? `rgba(255,0,0,${rigid})` : type==4? `rgba(0,255,255,${rigid})`: `rgba(0,0,255,${rigid}`;
+                el.innerHTML = msg;
+                document.body.appendChild(el);
+                setTimeout(function(){
+                    el.parentNode.removeChild(el);
+                }, duration);
+            } catch (error) {
+                console.log("error:" + error.name + ": " + error.message)
+            }
+        }
+    </script>
+</body>
+
+</html>

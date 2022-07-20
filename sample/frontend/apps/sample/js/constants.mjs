@@ -12,6 +12,7 @@ export const APP_CONSTANTS = {
     MESSAGE_HTML: APP_PATH + "/message.html",
     RANDOM_HTML: APP_PATH + "/random.html",
     BOOKS_HTML: APP_PATH + "/books.html",
+    BOOKS_HTML2: APP_PATH + "/books2.html",
 
     SESSION_NOTE_ID: "com_monkshu_ts",
 
