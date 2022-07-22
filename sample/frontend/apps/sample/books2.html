@@ -14,21 +14,28 @@
         .button{
             min-height: 26px;
             min-width: 50px;
+            letter-spacing: 1px;
             border: 1px solid gold;
             border-radius: 5px; 
         }
         .bookDiv{
-            margin: 4px;
-            padding: auto;
-            height: 80px;
-            width: 100vw;
+            margin: auto auto;
+            height: 8vh;
+            width: auto;
             border: 2px solid slateblue;
-            border-radius: 8x;
+            border-radius: 10px;
         }
         .bookContainer{
-            padding: auto;
             border: 3px solid slateblue;
-            border-radius: 10x;
+        }
+        .book{
+            letter-spacing: 1px;
+        }
+        .red{
+            background-color: rgb(223, 58, 58)
+        }
+        .blue{
+            background-color: rgb(65, 65, 224);
         }
     </style>
 </head>
@@ -89,11 +96,11 @@
             let bookDiv = document.createElement("div");
             bookContainer.appendChild(bookDiv)
             bookDiv.id = "book"+book.id; bookDiv.setAttribute("class", "bookDiv");
-            let bookName = document.createElement("span");  //bookName.setAttribute("class", "button");
-            bookName.innerText = book.name
-            let del = document.createElement("button"); del.innerText = "X"; //del.setAttribute("class", "button");
+            let bookName = document.createElement("span");  bookName.setAttribute("class", "book"); bookName.setAttribute("cols", 8)
+            bookName.innerHTML = `<span>${book.name}</span>`
+            let del = document.createElement("button"); del.innerText = "Delete"; del.setAttribute("class", "button red");
             del.onclick = delClickHandler;
-            let edi = document.createElement("button"); edi.innerText = "/"; //edi.setAttribute("class", "button");
+            let edi = document.createElement("button"); edi.innerText = "Edit"; edi.setAttribute("class", "button blue");
             edi.onclick = ediClickHandler;
             bookDiv.appendChild(bookName); bookDiv.appendChild(edi); bookDiv.appendChild(del);
         }
@@ -108,19 +115,26 @@
         }
         function ediClickHandler(e){
             let parent = e.target.parentNode;
-            let original = parent.firstChild
+            let original = parent.firstChild;
             let input = document.createElement("input"); input.value = original.innerText;
-            parent.firstChild = input;
+            parent.firstChild.firstChild.style.display = "none";
+            parent.firstChild.appendChild(input);
             e.target.innerText = 'Done'
-            e.target.onclick = editSubmissionHandler(e, original);
+            e.target.onclick = editSubmissionHandler
         }
-        function editSubmissionHandler(e, original){
-            console.log("event", e, "original", original)
+        function editSubmissionHandler(e){
             let parent = e.target.parentNode
-            let bookName = parent.firstChild.value
-            let newName = bookName.innerText
+            let newName = parent.firstChild.children[1].value
+            console.log(newName);
             if(!newName.length){
-                return reverseToOldValue();
+                notify("Name can't be empty", 1)
+                parent.firstChild.removeChild(parent.firstChild.children[1])
+                e.target.innerText = "Edit"
+                parent.firstChild.firstChild.style.display = "inline";
+                return;
+            }
+            else if(newName == parent.firstChild.firstChild.innerText){
+                return notify("Enter a different value to update", 4);
             }
             let res = apiCall("updateBook", {newName}, "POST")
             if(res.result){
